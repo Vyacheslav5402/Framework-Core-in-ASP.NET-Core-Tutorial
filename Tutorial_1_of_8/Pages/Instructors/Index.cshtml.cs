@@ -1,8 +1,12 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Tutorial_1_of_8.Models.SchoolViewModels;
-using Tutorial_1_of_8.Models;
 using Microsoft.EntityFrameworkCore;
+using Tutorial_1_of_8.Data;
+using Tutorial_1_of_8.Models;
 
 namespace Tutorial_1_of_8.Pages.Instructors
 {
@@ -15,36 +19,13 @@ namespace Tutorial_1_of_8.Pages.Instructors
             _context = context;
         }
 
-        public InstructorIndexData InstructorData { get; set; }
-        public int InstructorID { get; set; }
-        public int CourseID { get; set; }
+        public IList<Instructor> Instructor { get;set; } = default!;
 
-        public async Task OnGetAsync(int? id, int? courseID)
+        public async Task OnGetAsync()
         {
-            InstructorData = new InstructorIndexData();
-            InstructorData.Instructors = await _context.Instructors
-                .Include(i => i.OfficeAssignment)
-                .Include(i => i.Courses)
-                    .ThenInclude(c => c.Department)
-                .OrderBy(i => i.LastName)
-                .ToListAsync();
-
-            if (id != null)
+            if (_context.Instructors != null)
             {
-                InstructorID = id.Value;
-                Instructor instructor = InstructorData.Instructors
-                    .Where(i => i.ID == id.Value).Single();
-                InstructorData.Courses = instructor.Courses;
-            }
-
-            if (courseID != null)
-            {
-                CourseID = courseID.Value;
-                IEnumerable<Enrollment> Enrollments = await _context.Enrollments
-                    .Where(x => x.CourseID == CourseID)
-                    .Include(i => i.Student)
-                    .ToListAsync();
-                InstructorData.Enrollments = Enrollments;
+                Instructor = await _context.Instructors.ToListAsync();
             }
         }
     }
